@@ -28,7 +28,6 @@ function fetchLatestEarthquake() {
         return response.json();
     })
     .then(data => {
-        // データが存在するか確認
         if (data.length > 0 && data[0].earthquake) {
             latestEarthquakeData = data[0];
             const japaneseScale = convertScaleToJapanese(latestEarthquakeData.earthquake.maxScale || 0);
@@ -38,7 +37,6 @@ function fetchLatestEarthquake() {
                 マグニチュード: ${latestEarthquakeData.earthquake.hypocenter?.magnitude || '不明'}<br>
                 最大震度: ${japaneseScale}
             `;
-            // 津波情報の処理
             updateTsunamiInfo(latestEarthquakeData);
         } else {
             document.getElementById('earthquake-details').innerText = "地震情報はありません。";
@@ -67,27 +65,42 @@ function updateTsunamiInfo(data) {
 }
 
 function postToX() {
-    // earthquake-detailsとtsunami-infoの内容を取得
     const eqinfoElement = document.getElementById("earthquake-details");
     const eqinfo = eqinfoElement.innerText || eqinfoElement.textContent;
     const tsunamiInfoElement = document.getElementById("tsunami-info");
     const tsunamiInfo = tsunamiInfoElement.innerText || tsunamiInfoElement.textContent;
 
-    // ツイート用のURLを生成
     const baseUrl = "https://x.com/intent/tweet";
-    const tweetText = `${eqinfo}\n\n${tsunamiInfo}`; // eqinfoとtsunamiInfoをツイート内容に設定
-    const hashtags = "地震,情報"; // ハッシュタグ
+    const tweetText = `${eqinfo}\n\n${tsunamiInfo}`;
+    const hashtags = "地震,情報";
 
     const completeUrl = `${baseUrl}?text=${encodeURIComponent(tweetText)}&hashtags=${encodeURIComponent(hashtags)}`;
 
-    // 生成されたURLをログに出力
     console.log(completeUrl);
-
-    // ツイート画面を開く
     window.open(completeUrl, '_blank');
 }
 
+// 情報をクリップボードにコピーする関数
+function copyToClipboard() {
+    const eqinfoElement = document.getElementById("earthquake-details");
+    const eqinfo = eqinfoElement.innerText || eqinfoElement.textContent;
+    const tsunamiInfoElement = document.getElementById("tsunami-info");
+    const tsunamiInfo = tsunamiInfoElement.innerText || tsunamiInfoElement.textContent;
+
+    const textToCopy = `${eqinfo}\n\n${tsunamiInfo}`;
+
+    navigator.clipboard.writeText(textToCopy).then(function() {
+        alert('情報がクリップボードにコピーされました！');
+    }).catch(err => {
+        console.error('クリップボードへのコピーに失敗しました:', err);
+        alert('情報をクリップボードにコピーできませんでした。');
+    });
+}
+
 document.getElementById('x-post-btn').addEventListener('click', postToX);
+
+// コピーボタンのイベントリスナーを追加
+document.getElementById('copy-info-btn').addEventListener('click', copyToClipboard);
 
 // ページ読み込み時に一度情報を取得
 fetchLatestEarthquake();
